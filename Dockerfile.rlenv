@@ -1,0 +1,102 @@
+# ============================================================================
+# RLENV Patch Playground - Single-Stage Build
+# ============================================================================
+# Project: minimp4
+# Target: minimp4-x86
+# Original Image: ghcr.io/mayhemheroes/minimp4:master
+# Git Revision: 563e2818bc0d811678b2f56313d1ebc295cf3a4e
+# ============================================================================
+
+# ============================================================================
+# 1. Base Image Selection
+# ============================================================================
+FROM --platform=linux/amd64 ubuntu:20.04
+
+# ============================================================================
+# 2. System Dependencies (merged from all stages)
+# ============================================================================
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    gcc \
+    jq \
+    && rm -rf /var/lib/apt/lists/*
+
+# REQUIRED: jq is used by validate.sh to parse metadata.json
+
+# ============================================================================
+# 3. Copy MTV Binary (REQUIRED - used by validate.sh)
+# ============================================================================
+COPY --from="us-east4-docker.pkg.dev/forallsecure-1/rlenv-staging/rlenv-mcp-static:latest" \
+     /rlenv/bin/mtv /rlenv/bin/mtv
+
+# MTV (Mayhem Test & Verify) is required for validation and crash triage
+
+# ============================================================================
+# 4. Language-Specific Setup
+# ============================================================================
+ENV FUZZING_LANGUAGE=c
+
+# ============================================================================
+# 5. Copy Source Code (EARLY - source exists now)
+# ============================================================================
+COPY . /rlenv/source/minimp4/
+
+# This copies the entire repository to /rlenv/source/minimp4/
+
+# ============================================================================
+# 6. Make Source World-Writable (REQUIRED for non-root rebuilds)
+# ============================================================================
+RUN chmod -R 777 /rlenv/source
+
+# Why 777? Validation runs as UID 1000 (unprivileged user)
+# Must be able to modify source code and rebuild
+
+# ============================================================================
+# 7. Set Working Directory
+# ============================================================================
+WORKDIR /rlenv/source/minimp4/
+
+# All subsequent RUN commands execute from this directory
+
+# ============================================================================
+# 8. Build Application
+# ============================================================================
+RUN gcc -flto -O3 -std=gnu11 -DNDEBUG -D_FILE_OFFSET_BITS=64 \
+    -fno-stack-protector -ffunction-sections -fdata-sections -Wl,--gc-sections \
+    -o minimp4_x86 minimp4_test.c -lm -lpthread
+
+# ============================================================================
+# 9. Copy Artifacts to Expected Locations
+# ============================================================================
+RUN cp minimp4_x86 /minimp4_x86
+
+# ============================================================================
+# 10. Permission Management (REQUIRED)
+# ============================================================================
+# Target executable (rwxrw-rw-)
+RUN chmod 766 /minimp4_x86
+
+# ============================================================================
+# 11. Copy rlenv Directory (MUST BE NEAR END - doesn't exist yet!)
+# ============================================================================
+COPY rlenv /rlenv
+
+# CRITICAL: This directory doesn't exist when you create this Dockerfile
+# It's populated later by the `rlenv patch` command
+# That's why it must come AFTER source copy and build
+
+# ============================================================================
+# 12. Final Permission Fix (REQUIRED)
+# ============================================================================
+RUN chmod -R 777 /rlenv/source
+
+# Ensures source remains writable after rlenv directory copy
+
+# ============================================================================
+# 13. Set Entry Point
+# ============================================================================
+CMD ["/minimp4_x86"]
+
+# ============================================================================
+# 14. Reset Working Directory
+# ============================================================================
+WORKDIR /

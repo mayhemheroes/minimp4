@@ -1,0 +1,10 @@
+project: mayhemheroes/minimp4
+target: minimp4_x86
+
+cmds:
+  - cmd: /minimp4_x86 -m @@ out
+    env: {}
+image: ghcr.io/mayhemheroes/minimp4@sha256:ebdcaa21aa39448664192133e51d9c9fee1be5c7075e774aefd07c5494a992cb
+duration: 300
+testsuite:
+  - https://app.mayhem.security/mayhemheroes/minimp4/minimp4-x86/testsuite.tar

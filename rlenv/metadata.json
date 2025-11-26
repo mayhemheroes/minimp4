@@ -1,0 +1,13 @@
+{
+  "workspace": "mayhemheroes",
+  "project": "minimp4",
+  "target": "minimp4-x86",
+  "run_id": "3",
+  "ci_url": "https://github.com:443/mayhemheroes/minimp4/actions/runs/2690042572",
+  "run_image_name": "ghcr.io/mayhemheroes/minimp4:master",
+  "run_image_with_digest": "ghcr.io/mayhemheroes/minimp4@sha256:ebdcaa21aa39448664192133e51d9c9fee1be5c7075e774aefd07c5494a992cb",
+  "git_repo_url": "git@github.com:mayhemheroes/minimp4.git",
+  "git_revision": "563e2818bc0d811678b2f56313d1ebc295cf3a4e",
+  "target_executable": "/minimp4_x86",
+  "working_dir": ""
+}
