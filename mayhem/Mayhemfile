@@ -1,0 +1,14 @@
+# target: minimp4_x86 — the archived original's declared target name (Mayhem registers/normalizes
+# it to `minimp4-x86`, which is what the fork's run history is keyed under; keeping the underscore
+# form here preserves BOTH the literal port-check parity and the online run-history continuity).
+project: minimp4
+target: minimp4_x86
+
+cmds:
+  - cmd: /mayhem/fuzz_minimp4
+    max_length: 500000
+    libfuzzer: true
+
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/minimp4_x86/testsuite
